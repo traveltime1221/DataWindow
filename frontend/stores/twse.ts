@@ -8,11 +8,13 @@ import 台灣水庫分類 from '../content/台灣水庫列表.ts'
 // 中央氣象署
 // https://opendata.cwa.gov.tw/dist/opendata-swagger.html
 
+
+
 export const useTwse = defineStore('twse', {
   state: () => ({
     water: {
       isLoading: false,
-        水庫即時水情: [
+      水庫即時水情: [
             {
                 地區: '',
                 水庫: [
@@ -35,7 +37,7 @@ export const useTwse = defineStore('twse', {
                     }
                 ]
             }
-        ]
+      ]
     },
     颱風天放假公布資訊: {
       isLoading: false,
@@ -47,9 +49,38 @@ export const useTwse = defineStore('twse', {
           資訊:'',
         }
       ]
+    },
+    全球地震: {
+      isLoading: false,
+      data: [
+        {
+          地震時間: '',
+          地震位置: '',
+          "深度(公里)": '',
+          經度: '',
+          緯度: '',
+          規模: '',
+        }
+      ]
     }
   }),
   actions: {
+    async getEarthQuackWorldInfo() {
+      this.全球地震.isLoading = true
+      await api.全球地震資訊().then((res: any) => {
+        if (res.data.status == '1') {
+          console.log(res.data)
+          this.全球地震.data = res.data.content
+        } else {
+          console.log(res)
+          console.log('取得全球地震資訊異常')
+        }
+        this.全球地震.isLoading = false
+        
+      }).catch((e) => {
+        console.error('撈取 全球地震資訊異常')
+      })
+    },
     async 台灣水庫即時水情() {
       this.water.isLoading = true
       await api.twse.台灣水庫即時水情().then((res: any) => {

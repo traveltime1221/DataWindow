@@ -14,7 +14,12 @@
 
                 <v-tab value="tab-3">
                     <v-icon icon="mdi-landslide-outline"></v-icon>
-                    地震新訓
+                    地震新訊
+                </v-tab>
+
+                <v-tab value="tab-4">
+                    <v-icon icon="mdi-landslide-outline"></v-icon>
+                    全球地震資訊
                 </v-tab>
             </v-tabs>
             <v-tabs-window v-model="tab">
@@ -143,6 +148,36 @@
                         </v-card-text>
                     </v-card>
                 </v-tabs-window-item>
+
+                <v-tabs-window-item value="tab-4">
+                    <v-card>
+                        <v-card-text>
+                            <v-data-table :items="useTwseStore.全球地震.data" 
+                              :loading="useTwseStore.全球地震.isLoading" hide-default-footer>
+                                <template v-slot:loading>
+                                    <v-skeleton-loader type="table-row@10"></v-skeleton-loader>
+                                </template>
+                                <!-- 無資料 -->
+                                <template v-slot:no-data>
+                                    <v-alert type="info">
+                                        目前沒有地震相關資訊
+                                    </v-alert>
+                                </template>
+                                <!-- 自定義每行的內容顯示 -->
+                                <template v-slot:item="{ item }">
+                                <tr>
+                                    <td>{{ item.地震時間 }}</td>
+                                    <td>{{ item.經度 }}</td>
+                                    <td>{{ item.緯度 }}</td>
+                                    <td>{{ item["深度(公里)"]}}</td>
+                                    <td>{{ item.緯度 }}</td>
+                                    <td>{{ item.地震位置 }}</td>
+                                </tr>
+                                </template>
+                            </v-data-table>
+                        </v-card-text>
+                    </v-card>
+                </v-tabs-window-item>
             </v-tabs-window>
         </v-card>
     </v-container>
@@ -187,8 +222,13 @@ const useTwseStore = useTwse()
 const getWaterData = async () => await useTwseStore.台灣水庫即時水情()
 getWaterData()
 
+const 全球地震資訊 = async () => await useTwseStore.getEarthQuackWorldInfo()
+全球地震資訊()
+
 const 取得颱風天放假資訊 = async () => await useTwseStore.颱風天放假公布()
 取得颱風天放假資訊()
+
+
 
 
 //捲軸抵達位置

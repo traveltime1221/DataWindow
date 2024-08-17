@@ -16,7 +16,7 @@ export class TyphoonDayInfoService {
 
     async scrapeData(): Promise<string> {
         try {
-            console.log('== 爬取資料中 ==')
+            console.log('== 爬取台灣颱風放假資訊 ==')
             const { stdout } = await execPromise(`python project-python-analyze/spider_typhoon_info.py`);
             const data = JSON.parse(stdout)
             return data;
