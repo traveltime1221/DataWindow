@@ -1,107 +1,102 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-
-# 網頁等待相關
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
 from dotenv import load_dotenv
+
+from utils.crawler_setup import init_crawler
 from utils.response_format import response
-from utils.logger_format import setup_logger 
 
 import os
 import json
 
-logger = setup_logger(log_filename='project-python-analyze/logs/spider_typhoon_info.log')
+driver, logger = init_crawler(log_filename='project-python-analyze/logs/spider_typhoon_info.log')
 
-# 設置瀏覽器模式
-chrome_options = Options()
-chrome_options.add_argument('--headless') # 無頭模式
-# chrome_options.add_argument('--no-sandbox')  # 需要在某些環境中使用
-# chrome_options.add_argument('--disable-dev-shm-usage')  # 需要在某些環境中使用
+try:
+    #dgpa_url = os.getenv('DGPA_URL')
+    #cwa_url = os.getenv('CWA_URL')
 
-# 指定 ChromeDriver 路徑
-service = Service('/opt/homebrew/bin/chromedriver')  # 根據實際安裝位置調整
+    #warnings.warn(f"env取得成功: {dgpa_url}{cwa_url}")
 
-# 啟動 Chrome 瀏覽器
-driver = webdriver.Chrome(service=service, options=chrome_options)
+    #logger.info(dgpa_url)
+    #logger.info(cwa_url)
+    #warnings.warn(f"loggerinfo: 取得成功")
+    
+    # 抓取數據
+    urls = [
+        'https://www.dgpa.gov.tw/typh/daily/nds.html',
+        'https://www.cwa.gov.tw/V8/C/P/Typhoon/TY_WARN.html'
+    ]
 
-dgpa_url = os.getenv('DGPA_URL')
-cwa_url = os.getenv('CWA_URL')
+    data = {
+        "更新時間":"",
+        "颱風名稱":"",
+        "資訊":[]
+    }
 
-logger.info(dgpa_url)
+    def dgpa_parse_page (url):
 
-# 抓取數據
-urls = [
-    'https://www.dgpa.gov.tw/typh/daily/nds.html',
-    'https://www.cwa.gov.tw/V8/C/P/Typhoon/TY_WARN.html'
-]
+        # 開啟網頁
+        driver.get(url)
 
-data = {
-    "更新時間":"",
-    "颱風名稱":"",
-    "資訊":[]
-}
+        # 等待頁面加載
+        driver.implicitly_wait(3)
 
-def dgpa_parse_page (url):
+        try:
+            rows = WebDriverWait(driver, 10).until(
+                EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'tbody.Table_Body tr'))
+            )
 
-    # 開啟網頁
-    driver.get(url)
+            data["更新時間"] = driver.find_element(By.CSS_SELECTOR, '.Content_Updata h4').text.split('更新時間：')[1].split('\n')[0]
 
-    # 等待頁面加載
-    driver.implicitly_wait(3)
+            for row in rows:
+                try:
+                    city_name = row.find_element(By.CSS_SELECTOR, 'td[headers="city_Name"] font').text
+                    stop_work_school_info = [el.text for el in row.find_elements(By.CSS_SELECTOR, 'td[headers="StopWorkSchool_Info"] font')]
 
-    try:
-        #rows = driver.find_elements(By.CSS_SELECTOR, 'tbody.Table_Body tr')
-        rows = WebDriverWait(driver, 10).until(
-            EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'tbody.Table_Body tr'))
-        )
+                    if city_name and stop_work_school_info:
+                        data["資訊"].append({
+                            "地區": city_name,
+                            "資訊": stop_work_school_info
+                        })
+                        logger.info(data)
+                except NoSuchElementException:
+                    logger.error("無法找到某些元素, 跳過該行")
 
-        data["更新時間"] = driver.find_element(By.CSS_SELECTOR, '.Content_Updata h4').text.split('更新時間：')[1].split('\n')[0]
+        except TimeoutException as e:
+            logger.error(f"元素超時, 可能網頁未完全加載或選擇器不正確: {e}")
 
-        for row in rows:
-            try:
-                city_name = row.find_element(By.CSS_SELECTOR, 'td[headers="city_Name"] font').text
-                stop_work_school_info = [el.text for el in row.find_elements(By.CSS_SELECTOR, 'td[headers="StopWorkSchool_Info"] font')]
+    def cwa_parse_page(url):
+        driver.get(url)
 
-                if city_name and stop_work_school_info:
-                    data["資訊"].append({
-                        "地區": city_name,
-                        "資訊": stop_work_school_info
-                    })
-                    logger.info(data)
-            except NoSuchElementException:
-                logger.error("無法找到某些元素, 跳過該行")
+        try:
+            # 等待元素加載並抓取文本內容
+            warn_content = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, '.WarnContent'))
+            )
+            
+            # 獲取文本並直接賦值給 data['颱風名稱']
+            data['颱風名稱'] = warn_content.text
 
-    except TimeoutException as e:
-        logger.error(f"元素超時, 可能網頁未完全加載或選擇器不正確: {e}")
+        except TimeoutException as e:
+            logger.error(f'超時, 或加載不正確: {e}')
 
-def cwa_parse_page(url):
-    driver.get(url)
+    try: 
+        dgpa_parse_page(urls[0])
+        cwa_parse_page(urls[1])
+        response = response('1', data)
+    except Exception as e:
+        response = response('0', '撈取異常')
 
-    try:
-        # 等待元素加載並抓取文本內容
-        warn_content = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, '.WarnContent'))
-        )
-        
-        # 獲取文本並直接賦值給 data['颱風名稱']
-        data['颱風名稱'] = warn_content.text
+    print(json.dumps(response, ensure_ascii=False, indent=4))
 
-    except TimeoutException as e:
-        logger.error(f'超時, 或加載不正確: {e}')
-
-try: 
-    dgpa_parse_page(urls[0])
-    cwa_parse_page(urls[1])
-    response = response('1', data)
+    # 關閉連線
+    driver.quit()
 except Exception as e:
-    response = response('0', '撈取異常')
+    logger.error(f'引用失敗')
+finally:
+    driver.quit()
 
-print(json.dumps(response, ensure_ascii=False, indent=4))
 
-# 關閉連線
-driver.quit()
+
