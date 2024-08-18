@@ -69,10 +69,8 @@ export const useTwse = defineStore('twse', {
       this.全球地震.isLoading = true
       await api.全球地震資訊().then((res: any) => {
         if (res.data.status == '1') {
-          console.log(res.data)
           this.全球地震.data = res.data.content
         } else {
-          console.log(res)
           console.log('取得全球地震資訊異常')
         }
         this.全球地震.isLoading = false

@@ -152,6 +152,14 @@
                 <v-tabs-window-item value="tab-4">
                     <v-card>
                         <v-card-text>
+                            <v-skeleton-loader type="card" v-if="useTwseStore.全球地震.isLoading"></v-skeleton-loader>
+                            <div v-else>
+                                <div id="map" style="height: 50vh"></div>
+                                <br/>
+                                僅展示地震規模大於6之全球地震初步訊息 <br/><br/>
+                            </div>
+                            
+                            <v-divider class="mb-5"></v-divider>
                             <v-data-table :items="useTwseStore.全球地震.data" 
                               :loading="useTwseStore.全球地震.isLoading" hide-default-footer>
                                 <template v-slot:loading>
@@ -171,7 +179,7 @@
                                     <td>{{ item.緯度 }}</td>
                                     <td>{{ item["深度(公里)"]}}</td>
                                     <td>{{ item.緯度 }}</td>
-                                    <td>{{ item.地震位置 }}</td>
+                                    <td @click="clickHandlerPos(item)">{{ item.地震位置 }}</td>
                                 </tr>
                                 </template>
                             </v-data-table>
@@ -186,7 +194,9 @@
 <script lang="ts" setup>
 import * as d3 from 'd3';
 import * as topojson from "topojson-client";
+import { getConfig } from '../../utils/config';
 import { useGoTo } from 'vuetify'
+import 'leaflet/dist/leaflet.css'
 
 interface Topology {
     type: string;
@@ -214,6 +224,7 @@ interface Geometry {
     };
 }
 
+const { api_thunderforest_key } = getConfig()
 const tab = ref(null)
 const goTo = useGoTo()
 const useTwseStore = useTwse()
@@ -222,14 +233,94 @@ const useTwseStore = useTwse()
 const getWaterData = async () => await useTwseStore.台灣水庫即時水情()
 getWaterData()
 
-const 全球地震資訊 = async () => await useTwseStore.getEarthQuackWorldInfo()
-全球地震資訊()
+let markers = ref<{[key: string]: L.Marker}>({})
+let getPosition = ref<(location: any) => void | null | undefined>();
+
+const 全球地震資訊 = async () => {
+    await useTwseStore.getEarthQuackWorldInfo();
+    import('leaflet').then(L => {
+
+        // 初始化地圖
+        const map = L.map("map", {renderer: L.canvas()});
+
+        
+
+        // 添加 Thunderforest 地圖圖層
+        L.tileLayer(`https://tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=${api_thunderforest_key}`, {
+            attribution: 'Maps &copy; <a href="https://www.thunderforest.com/">Thunderforest</a>, Data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+            minZoom: 2,
+            maxZoom: 18
+        }).addTo(map);
+
+        // 收集所有標記的位置, 並初始化對象為空值
+        const bounds = L.latLngBounds([]);
+
+        useTwseStore.全球地震.data.forEach((item) => {
+            const longitude = parseFloat(item.經度.replace('N', ''))
+            const latitude = parseFloat(item.緯度.replace('E', ''))
+            const popup = `
+                <div>
+                    <strong>地震時間:</strong> ${item.地震時間}<br>
+                    <strong>地震位置:</strong> ${item.地震位置}<br>
+                    <strong>深度(公里):</strong> ${item['深度(公里)']}<br>
+                    <strong>經度:</strong> ${item.經度}<br>
+                    <strong>緯度:</strong> ${item.緯度}<br>
+                    <strong>規模:</strong> ${item.規模}<br>
+                </div>
+            `;
+
+            // 添加標記到地圖
+            const customIcon = L.divIcon({
+                className: 'custom-div-icon',
+                html: `<div class='icon-mark'></div>`,
+                iconSize: [30, 30],
+                iconAnchor: [15, 15], // 設定錨點
+            })
+
+            const marker = L.marker([latitude, longitude], {
+                //icon: customIcon
+            }).addTo(map)
+                .bindTooltip(popup, {
+                    permanent: false,
+                    direction: 'top'
+                })
+                .bindPopup(popup);
+
+            // 將標記的位置加入邊界計算
+            bounds.extend([latitude, longitude]);
+
+            // 儲存標記
+            markers.value[item.地震位置] = marker
+        });
+
+        // 根據邊界調整地圖視圖
+        map.fitBounds(bounds);
+
+        // 處理點選連結標示網址資訊
+        getPosition.value = (location: any) => {
+            const marker = markers.value[location.地震位置];
+            if (marker) {
+                marker.openPopup();
+                map.panTo(marker.getLatLng());
+            } else {
+                console.error('Marker not found:', location.地震位置);
+            }
+        }
+
+    }).catch(err => console.error('Leaflet import failed:', err));
+}
+
+const clickHandlerPos = (item: any) => {
+    console.log(item)
+    if (getPosition.value) {
+        getPosition.value(item);
+    }
+};
+
+
 
 const 取得颱風天放假資訊 = async () => await useTwseStore.颱風天放假公布()
 取得颱風天放假資訊()
-
-
-
 
 //捲軸抵達位置
 const handleClick = (name: string) => {
@@ -291,11 +382,38 @@ onMounted(() => {
     watch(tab, (newTab) => {
         if (newTab === 'tab-3') nextTick(() => drawer())
     })
+    全球地震資訊()
 })
 
 </script>
 
 <style lang="scss" scoped>
+.custom-div-icon {
+    background-color: transparent;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.icon-mark {
+    background-color: red;
+    border: 1px solid white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50px;
+    position: relative;
+    &:before {
+        content: '';
+        width: 14px;
+        height: 14px;
+        background-color: white;
+        border-radius: 50%;
+        position: absolute;
+        top: 8px;
+        left: 8px;
+    }
+}
+
 .reservoir-wrap {
     width: 100%;
     max-width: 250px;

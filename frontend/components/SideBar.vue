@@ -45,33 +45,34 @@ const sidebarData = [
   },
   {
     isGroup: true,
-    name: '用數據看台灣',
-    icon: 'mdi-account-multiple',
+    name: '氣候數據',
+    icon: 'mdi-earth',
     sublist: [
-      { name: '颱風地震相關資訊', icon: 'mdi-account-multiple-outline', link: '/Taiwan/TyphoonEarthquakeInfo' },
-      { name: 'Settings', icon: 'mdi-cog-outline', link: '/' },
-      {
-        isGroup: true,
-        name: 'Sub Admins',
-        icon: 'mdi-subdirectory-arrow-right',
-        sublist: [
-          { name: 'Sub Management', icon: 'mdi-account-multiple-outline', link: '/' },
-          { name: 'Sub Settings', icon: 'mdi-cog-outline', link: '/' },
-        ]
-      }
+      { name: '台灣颱風地震水庫資訊', icon: 'mdi-terrain', link: '/Taiwan/TyphoonEarthquakeInfo', isGroup: false },
+      { name: '全球', icon: 'mdi-tsunami', link: '/World/EarthquakeInfo', isGroup: false },
+      // { name: '全球地震', icon: 'mdi-tsunami', link: '/World/EarthquakeInfo' },
+      // {
+      //   isGroup: true,
+      //   name: '全球地震',
+      //   icon: 'mdi-tsunami',
+      //   sublist: [
+      //     { name: '全球地震', icon: 'mdi-account-multiple-outline', link: '/World/EarthquakeInfo' },
+      //     { name: 'Sub Settings', icon: 'mdi-cog-outline', link: '/' },
+      //   ]
+      // }
     ],
   },
-  {
-    isGroup: true,
-    name: 'Actions',
-    icon: 'mdi-playlist-plus',
-    sublist: [
-      { name: 'Create', icon: 'mdi-plus-outline', link: '/' },
-      { name: 'Read', icon: 'mdi-file-outline', link: '/' },
-      { name: 'Update', icon: 'mdi-update', link: '/' },
-      { name: 'Delete', icon: 'mdi-delete', link: '/' },
-    ],
-  }
+  // {
+  //   isGroup: true,
+  //   name: 'Actions',
+  //   icon: 'mdi-playlist-plus',
+  //   sublist: [
+  //     { name: 'Create', icon: 'mdi-plus-outline', link: '/' },
+  //     { name: 'Read', icon: 'mdi-file-outline', link: '/' },
+  //     { name: 'Update', icon: 'mdi-update', link: '/' },
+  //     { name: 'Delete', icon: 'mdi-delete', link: '/' },
+  //   ],
+  // }
 ];
 
 

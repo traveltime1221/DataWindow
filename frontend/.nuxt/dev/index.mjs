@@ -106,6 +106,7 @@ const _inlineRuntimeConfig = {
     "dev": "http://localhost:3001"
   },
   "private": {
+    "thunderforestApiKey": "77e58df3130b4566b8f762f4cc16022b",
     "privateApiKey": ""
   }
 };

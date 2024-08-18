@@ -6,9 +6,11 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       twse: process.env.API_TAIWANSTAT,
-      dev: process.env.API_DEV
+      dev: process.env.API_DEV,
+
     },
     private: { // 私有配置
+      thunderforestApiKey: process.env.API_thunderforest_key,
       privateApiKey: '',
     },
   },
@@ -18,6 +20,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
   devtools: { enabled: true },
   modules: [
+    '@nuxtjs/leaflet',
     '@pinia/nuxt',
     'nuxt-3-axios',
     (_options, nuxt) => {// vutify 設定

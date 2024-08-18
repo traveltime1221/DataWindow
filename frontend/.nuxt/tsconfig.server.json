@@ -119,6 +119,7 @@
   },
   "include": [
     "./types/nitro-nuxt.d.ts",
+    "../node_modules/@nuxtjs/leaflet/runtime/server",
     "../node_modules/@pinia/nuxt/runtime/server",
     "../node_modules/nuxt-3-axios/runtime/server",
     "../node_modules/@nuxt/devtools/runtime/server",

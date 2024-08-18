@@ -39,7 +39,7 @@ try:
             obj = {
                 "地震時間": cols[0].text.strip(),
                 "經度":  cols[1].get_attribute('innerText').strip(),
-                "緯度":  cols[1].get_attribute('innerText').strip(),
+                "緯度":  cols[2].get_attribute('innerText').strip(),
                 "深度(公里)": cols[3].text.strip(),
                 "規模": cols[4].text.strip(),
                 "地震位置": cols[5].text.strip()
