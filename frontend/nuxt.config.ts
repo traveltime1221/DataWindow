@@ -7,7 +7,6 @@ export default defineNuxtConfig({
     public: {
       twse: process.env.API_TAIWANSTAT,
       dev: process.env.API_DEV,
-
     },
     private: { // 私有配置
       thunderforestApiKey: process.env.API_thunderforest_key,

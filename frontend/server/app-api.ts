@@ -41,9 +41,7 @@ function get_twse (path: string) {
 export default {
   全球地震資訊: () => get(`/earthquake-world-info/data`),
   颱風天放假公布: () => get(`/typhoon-day-info/data`),
-  twse: {
-    台灣水庫即時水情: () => get_twse(`/waters/latest`)
-  },
+  台灣水庫即時水情: () => get_twse(`/waters/latest`),
   stock: {
     查詢個股資訊: (code: string, timer: string) => get(`/rwd/zh/api/codeQuery?query=${code}&_=${timer}`)
     //getStock: (data: string) => get(`/stocks/quote?symbol=${data}`),
