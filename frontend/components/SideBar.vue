@@ -37,6 +37,14 @@ const sidebarData = [
     icon: 'mdi-home-city',
     link: '/Home',
   },
+  {
+    isGroup: true,
+    name: '個人專區',
+    icon: 'mdi-home-city',
+    sublist: [
+      { name: '作品集', icon: 'mdi-tsunami', link: '/World/EarthquakeInfo', isGroup: false },
+    ],
+  },
   { 
     isGroup: false,
     name: '股票',

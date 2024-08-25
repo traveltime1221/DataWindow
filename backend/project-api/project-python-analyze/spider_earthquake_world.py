@@ -11,7 +11,7 @@ from utils.response_format import response
 import os
 import json
 
-driver, logger = init_crawler(log_filename='project-python-analyze/logs/spider_earthquake_world.log')
+driver, logger = init_crawler(log_filename='project-python-analyze/logs/spider_earthquake_info_tw.log')
 
 try:
     urls=['https://scweb.cwa.gov.tw/zh-tw/earthquake/world/']

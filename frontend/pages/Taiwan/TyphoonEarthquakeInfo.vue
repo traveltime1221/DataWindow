@@ -130,17 +130,36 @@
                 <v-tabs-window-item value="tab-3">
                     <v-card>
                         <v-card-text> 
-                            page - 3
-                            <div class="taiwan-map">
-                                <div class="taiwan"></div>
-                                <div id="tooltip" class="tooltip"
-                                 style="position: absolute;
-                                    background: #fff;
-                                    border: 1px solid #ccc;
-                                    padding: 5px;
-                                    display: none;"
-                                ></div>
-                            </div>
+                            台灣地震資訊
+                            <v-expansion-panels>
+                                <!-- <template v-if="useDataAnlysisStore.台灣地震.isLoading">
+                                    <v-skeleton-loader type="table-row@10"></v-skeleton-loader>
+                                </template> -->
+                                <v-expansion-panel
+                                    v-for="(item, index) in useDataAnlysisStore.台灣地震.data"
+                                    :key="index"
+                                >
+                                <v-expansion-panel-title>
+                                    <template v-slot:default="{ expanded }">
+                                        {{item.地震時間}}_{{item.地震位置}}
+                                    </template>
+                                </v-expansion-panel-title>
+                                <v-expansion-panel-text>
+                                    <img :src="item.圖片"/>
+                                </v-expansion-panel-text>
+                            </v-expansion-panel>
+                            </v-expansion-panels>
+
+                            <v-data-table :items="useDataAnlysisStore.台灣地震.data" :loading="useDataAnlysisStore.台灣地震.isLoading" hide-default-footer>
+                                <template v-slot:loading>
+                                    <v-skeleton-loader type="table-row@10"></v-skeleton-loader>
+                                </template>
+                                <template v-slot:no-data>
+                                    <v-alert type="info">
+                                    目前沒有台灣地震相關資訊
+                                    </v-alert>
+                                </template>
+                            </v-data-table> 
                         </v-card-text>
                     </v-card>
                 </v-tabs-window-item>
@@ -151,8 +170,8 @@
 </template>
 
 <script lang="ts" setup>
-import * as d3 from 'd3';
-import * as topojson from "topojson-client";
+// import * as d3 from 'd3';
+// import * as topojson from "topojson-client";
 import { useGoTo } from 'vuetify'
 
 interface Topology {
@@ -198,6 +217,9 @@ const getWaterData = async () => await useDataAnlysisStore.台灣水庫即時水
 getWaterData()
 const 取得颱風天放假資訊 = async () => await useDataAnlysisStore.颱風天放假公布()
 取得颱風天放假資訊()
+const 台灣地震資訊 = async () => await useDataAnlysisStore.台灣地震資訊()
+台灣地震資訊()
+
 
 
 //捲軸抵達位置
@@ -210,56 +232,52 @@ const handleClick = (name: string) => {
     })
 }
 
-const drawer = () => {
-    d3.select('.taiwan').html('')
+// const drawer = () => {
+//     d3.select('.taiwan').html('')
 
-    // 選取 dom 元素
-    const svg = d3.select(".taiwan").append("svg");
-    if (!svg) return
+//     // 選取 dom 元素
+//     const svg = d3.select(".taiwan").append("svg");
+//     if (!svg) return
 
-    // 響應式
-    // tip: svg.node()有可能為 null, 因此使用非斷言
-    const width = svg.node()!.clientWidth
-    const height = svg.node()!.clientHeight
-    console.log(width)
-    svg.attr('viewBox', `0 0 ${width}${height}`)
+//     // 響應式
+//     // tip: svg.node()有可能為 null, 因此使用非斷言
+//     const width = svg.node()!.clientWidth
+//     const height = svg.node()!.clientHeight
+//     console.log(width)
+//     svg.attr('viewBox', `0 0 ${width}${height}`)
 
-    // 設置地圖投影
-    // 解釋：使用墨卡托投影, 設定中心點(可參考 google map )、大小、居中
-    const projection = d3.geoMercator().center([121, 24]).scale(2000).translate([width/2, height/2])
-    // 生成 svg 路徑
-    const path = d3.geoPath().projection(projection)
+//     // 設置地圖投影
+//     // 解釋：使用墨卡托投影, 設定中心點(可參考 google map )、大小、居中
+//     const projection = d3.geoMercator().center([121, 24]).scale(2000).translate([width/2, height/2])
+//     // 生成 svg 路徑
+//     const path = d3.geoPath().projection(projection)
 
-    // 取得格式資料
-    d3.json('/taiwan-topup.json').then((data: unknown) => {
-        console.log('應取得台灣相關json檔案資料')
+//     // 取得格式資料
+//     d3.json('/taiwan-topup.json').then((data: unknown) => {
+//         console.log('應取得台灣相關json檔案資料')
 
-        if (data && typeof data === 'object' && 'objects' in data) {
-            const taiwan = data as any;
-            if (taiwan.objects.COUNTY_MOI_1130718) {
-                const counties = topojson.feature(taiwan as any, taiwan.objects.COUNTY_MOI_1130718 as any) as any;
+//         if (data && typeof data === 'object' && 'objects' in data) {
+//             const taiwan = data as any;
+//             if (taiwan.objects.COUNTY_MOI_1130718) {
+//                 const counties = topojson.feature(taiwan as any, taiwan.objects.COUNTY_MOI_1130718 as any) as any;
 
-                svg.selectAll('path').data(counties.features).enter().append('path').attr('d', (d: any) => path(d)).attr('fill', '#ccc').attr('stroke', '#333').on('mouseover', function(event, d: any) {
-                    d3.select(this).attr("fill", "#ffcc00");
-                    d3.select(".tooltip")
-                    .style("display", "block")
-                    .style("left", `${event.pageX + 10}px`)
-                    .style("top", `${event.pageY - 28}px`)
-                    .html(`<strong>${d.properties.COUNTYNAME}</strong>`);
-                }).on('mouseout', function() {
-                    d3.select(this).attr("fill", "#cccccc");
-                })
-            }
-        }
-    }).catch((e) => console.error('取得地圖異常'))
-}
+//                 svg.selectAll('path').data(counties.features).enter().append('path').attr('d', (d: any) => path(d)).attr('fill', '#ccc').attr('stroke', '#333').on('mouseover', function(event, d: any) {
+//                     d3.select(this).attr("fill", "#ffcc00");
+//                     d3.select(".tooltip")
+//                     .style("display", "block")
+//                     .style("left", `${event.pageX + 10}px`)
+//                     .style("top", `${event.pageY - 28}px`)
+//                     .html(`<strong>${d.properties.COUNTYNAME}</strong>`);
+//                 }).on('mouseout', function() {
+//                     d3.select(this).attr("fill", "#cccccc");
+//                 })
+//             }
+//         }
+//     }).catch((e) => console.error('取得地圖異常'))
+// }
 
 // 渲染 d3
 onMounted(() => {
-    //drawer()
-    watch(tab, (newTab) => {
-        if (newTab === 'tab-3') nextTick(() => drawer())
-    })
 })
 </script>
 

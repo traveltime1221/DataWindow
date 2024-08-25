@@ -60,6 +60,21 @@ export const useDataAnalysis = defineStore('dataAnalysis', {
           規模: '',
         }
       ]
+    },
+    台灣地震: {
+      isLoading: false,
+      data: [
+        {
+          "id": '',
+          "地震時間": '',
+          "經度":  '',
+          "緯度":  '',
+          "深度(公里)": '',
+          "規模": '',
+          "地震位置": '',
+          "圖片":'',
+        }
+      ]
     }
   }),
   actions: {
@@ -75,6 +90,20 @@ export const useDataAnalysis = defineStore('dataAnalysis', {
 
       }).catch((e) => {
         console.error('撈取 全球地震資訊異常')
+      })
+    },
+    async 台灣地震資訊() {
+      this.台灣地震.isLoading = true
+      await api.台灣地震資訊().then((res): any => {
+        if (res.data.status == '1') {
+          this.台灣地震.data = res.data.content
+        } else {
+          console.log('爬取異常')
+        }
+        this.台灣地震.isLoading = false
+      }).catch((e) => {
+        console.error('撈取 台灣地震資訊 api 異常', e)
+        this.台灣地震.isLoading = false
       })
     },
     async 台灣水庫即時水情() {

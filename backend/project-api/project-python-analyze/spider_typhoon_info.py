@@ -44,7 +44,7 @@ try:
         driver.implicitly_wait(3)
 
         try:
-            rows = WebDriverWait(driver, 10).until(
+            rows = WebDriverWait(driver, 5).until(
                 EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'tbody.Table_Body tr'))
             )
 
@@ -72,7 +72,7 @@ try:
 
         try:
             # 等待元素加載並抓取文本內容
-            warn_content = WebDriverWait(driver, 10).until(
+            warn_content = WebDriverWait(driver, 5).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, '.WarnContent'))
             )
             
